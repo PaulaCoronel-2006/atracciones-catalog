@@ -1,0 +1,34 @@
+using Microservicios.Atracciones.Catalog.DataAccess.Entities;
+
+namespace Microservicios.Atracciones.Catalog.DataAccess.Repositories.Interfaces;
+
+// â”€â”€ GeografÃ­a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface ILocationRepository : IGenericRepository<Location> { }
+
+// â”€â”€ Idiomas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface ILanguageRepository : IGenericRepository<Language> { }
+
+// â”€â”€ CatÃ¡logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface ICategoryRepository : IGenericRepository<Category> { }
+public interface ISubcategoryRepository : IGenericRepository<Subcategory> { }
+public interface ITagRepository : IGenericRepository<Tag> { }
+
+// â”€â”€ AtracciÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface IAttractionRepository : IGenericRepository<Attraction> 
+{
+    Task<Attraction?> GetAttractionWithDetailsAsync(Guid id);
+}
+public interface IAudioGuideRepository : IGenericRepository<AudioGuide> { }
+public interface ITourItineraryRepository : IGenericRepository<TourItinerary> { }
+
+// â”€â”€ Inclusiones y Modalidades â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface IInclusionItemRepository : IGenericRepository<InclusionItem> { }
+public interface IProductOptionRepository : IGenericRepository<ProductOption> { }
+
+// â”€â”€ Precios â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface IPriceTierRepository : IGenericRepository<PriceTier> { }
+
+// â”€â”€ Otros â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+public interface ITicketCategoryRepository : IGenericRepository<TicketCategory> { }
+public interface ITourStopRepository : IGenericRepository<TourStop> { }
+
