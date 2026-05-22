@@ -129,6 +129,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapGet("/ping", (HttpContext ctx) => Results.Ok(new {
+    message = "pong from catalog",
+    path = ctx.Request.Path.Value,
+    fullUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{ctx.Request.Path}{ctx.Request.QueryString}"
+})).AllowAnonymous();
+
 app.Run();
 
 public class RoutePrefixConvention : Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelConvention
