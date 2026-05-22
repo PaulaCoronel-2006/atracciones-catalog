@@ -129,11 +129,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/ping", (HttpContext ctx) => Results.Ok(new {
-    message = "pong from catalog",
-    path = ctx.Request.Path.Value,
-    fullUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{ctx.Request.Path}{ctx.Request.QueryString}"
-})).AllowAnonymous();
+// Diagnostic endpoints - respond to different path formats to determine gateway forwarding behavior
+app.MapGet("/ping", (HttpContext ctx) => Results.Ok(new { match = "absolute /ping", path = ctx.Request.Path.Value })).AllowAnonymous();
+app.MapGet("/catalog/ping", (HttpContext ctx) => Results.Ok(new { match = "/catalog/ping", path = ctx.Request.Path.Value })).AllowAnonymous();
+app.MapGet("/api/v1/catalog/ping", (HttpContext ctx) => Results.Ok(new { match = "/api/v1/catalog/ping", path = ctx.Request.Path.Value })).AllowAnonymous();
+app.MapGet("/api/v1/coronel_paula/catalog/ping", (HttpContext ctx) => Results.Ok(new { match = "/api/v1/coronel_paula/catalog/ping", path = ctx.Request.Path.Value })).AllowAnonymous();
 
 app.Run();
 
