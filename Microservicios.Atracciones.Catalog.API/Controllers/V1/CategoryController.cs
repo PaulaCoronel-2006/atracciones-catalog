@@ -9,6 +9,7 @@ namespace Microservicios.Atracciones.Catalog.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/category")]
+[AllowAnonymous]
 public class CategoryController : ControllerBase
 {
     private readonly ICategoryService _categoryService;

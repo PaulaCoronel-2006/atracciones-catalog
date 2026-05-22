@@ -8,6 +8,7 @@ namespace Microservicios.Atracciones.Catalog.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/inclusion")]
+[AllowAnonymous]
 public class InclusionController : ControllerBase
 {
     private readonly IMasterDataService _masterData;

@@ -7,7 +7,7 @@ namespace Microservicios.Atracciones.Catalog.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/productoption")]
-[Authorize(Roles = "Admin,Partner")]
+[AllowAnonymous]
 public class ProductOptionController : ControllerBase
 {
     private readonly IProductOptionService _productOptionService;

@@ -9,6 +9,7 @@ namespace Microservicios.Atracciones.Catalog.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/attraction")]
+[AllowAnonymous]
 public class AttractionController : ControllerBase
 {
     private readonly IAttractionService _attractionService;

@@ -9,6 +9,7 @@ namespace Microservicios.Atracciones.Catalog.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/location")]
+[AllowAnonymous]
 public class LocationController : ControllerBase
 {
     private readonly ILocationService _locationService;
