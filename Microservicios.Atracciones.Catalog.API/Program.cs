@@ -159,6 +159,24 @@ try
 
             ALTER TABLE ticket_category ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
             ALTER TABLE ticket_category ADD COLUMN IF NOT EXISTS sort_order SMALLINT DEFAULT 0;
+
+            ALTER TABLE product_translation ADD COLUMN IF NOT EXISTS description TEXT;
+            ALTER TABLE product_translation ADD COLUMN IF NOT EXISTS duration_description VARCHAR(150);
+            ALTER TABLE product_translation ADD COLUMN IF NOT EXISTS cancel_policy_text TEXT;
+
+            ALTER TABLE attraction_translation ADD COLUMN IF NOT EXISTS description_short TEXT;
+            ALTER TABLE attraction_translation ADD COLUMN IF NOT EXISTS meeting_point TEXT;
+
+            ALTER TABLE tour_itinerary ADD COLUMN IF NOT EXISTS overview TEXT;
+            ALTER TABLE tour_itinerary ADD COLUMN IF NOT EXISTS total_distance_km NUMERIC(6,2);
+            ALTER TABLE tour_itinerary ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+            ALTER TABLE tour_itinerary ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+            ALTER TABLE tour_stop ADD COLUMN IF NOT EXISTS description TEXT;
+            ALTER TABLE tour_stop ADD COLUMN IF NOT EXISTS duration_minutes SMALLINT;
+            ALTER TABLE tour_stop ADD COLUMN IF NOT EXISTS latitude NUMERIC(10,8);
+            ALTER TABLE tour_stop ADD COLUMN IF NOT EXISTS longitude NUMERIC(11,8);
+            ALTER TABLE tour_stop ADD COLUMN IF NOT EXISTS admission_type VARCHAR(20);
         ");
         
         Console.WriteLine("¡Base de datos actualizada con éxito de forma automática!");
