@@ -129,6 +129,43 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// ======================================================
+// ACTUALIZADOR DE BASE DE DATOS AUTOMÁTICO EN EL INICIO
+// ======================================================
+try
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<Microservicios.Atracciones.Catalog.DataAccess.Context.AtraccionDbContext>();
+        Console.WriteLine("Ejecutando script de actualización de base de datos...");
+        
+        Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRaw(context.Database, @"
+            ALTER TABLE price_tier ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+            ALTER TABLE price_tier ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+            ALTER TABLE price_tier ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+            
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS description TEXT;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS duration_minutes INTEGER;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS duration_description VARCHAR(100);
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS cancel_policy_hours INTEGER DEFAULT 24;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS cancel_policy_text TEXT;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS max_group_size SMALLINT;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS min_participants SMALLINT DEFAULT 1;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS sort_order SMALLINT DEFAULT 0;
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+            ALTER TABLE product_option ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+        ");
+        
+        Console.WriteLine("¡Base de datos actualizada con éxito de forma automática!");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error en actualización automática de base de datos: {ex.Message}");
+}
+
 // Diagnostic endpoints - respond to different path formats to determine gateway forwarding behavior
 app.MapGet("/ping", (HttpContext ctx) => Results.Ok(new { match = "absolute /ping", path = ctx.Request.Path.Value })).AllowAnonymous();
 app.MapGet("/catalog/ping", (HttpContext ctx) => Results.Ok(new { match = "/catalog/ping", path = ctx.Request.Path.Value })).AllowAnonymous();
@@ -136,6 +173,7 @@ app.MapGet("/api/v1/catalog/ping", (HttpContext ctx) => Results.Ok(new { match =
 app.MapGet("/api/v1/coronel_paula/catalog/ping", (HttpContext ctx) => Results.Ok(new { match = "/api/v1/coronel_paula/catalog/ping", path = ctx.Request.Path.Value })).AllowAnonymous();
 
 app.Run();
+
 
 public class RoutePrefixConvention : Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelConvention
 {
