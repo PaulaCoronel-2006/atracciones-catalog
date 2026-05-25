@@ -156,6 +156,9 @@ try
             ALTER TABLE product_option ADD COLUMN IF NOT EXISTS sort_order SMALLINT DEFAULT 0;
             ALTER TABLE product_option ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
             ALTER TABLE product_option ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+            ALTER TABLE ticket_category ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+            ALTER TABLE ticket_category ADD COLUMN IF NOT EXISTS sort_order SMALLINT DEFAULT 0;
         ");
         
         Console.WriteLine("¡Base de datos actualizada con éxito de forma automática!");
