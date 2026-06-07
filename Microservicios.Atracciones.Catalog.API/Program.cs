@@ -18,6 +18,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddDataManagementServices();
 builder.Services.AddBusinessServices();
+builder.Services.AddGrpc();
 
 // ======================================================
 // 2. CONFIGURACIÃ“N API & CORS
@@ -128,6 +129,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGrpcService<Microservicios.Atracciones.Catalog.API.Grpc.CatalogGrpcService>();
 
 // ======================================================
 // ACTUALIZADOR DE BASE DE DATOS AUTOMÁTICO EN EL INICIO
