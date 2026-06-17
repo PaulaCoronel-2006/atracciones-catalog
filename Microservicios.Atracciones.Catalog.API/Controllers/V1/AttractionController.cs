@@ -82,7 +82,18 @@ public class AttractionController : ControllerBase
         bool isAdmin = User.IsInRole("Admin");
         var success = await _attractionService.UpdateAsync(id, request, userId, isAdmin);
         if (!success) return NotFound();
-        return Ok(new { message = "AtracciÃ³n actualizada con Ã©xito." });
+        return Ok(new { message = "Atracción actualizada con éxito." });
+    }
+
+    [HttpPut("{id:guid}/complete")]
+    [Authorize(Roles = "Admin,Partner")]
+    public async Task<ActionResult> UpdateComplete(Guid id, [FromBody] CreateCompleteAttractionRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        bool isAdmin = User.IsInRole("Admin");
+        var success = await _attractionService.UpdateCompleteAsync(id, request, userId, isAdmin);
+        if (!success) return NotFound();
+        return Ok(new { message = "Atracción completa actualizada con éxito." });
     }
 
     [HttpDelete("{id:guid}")]

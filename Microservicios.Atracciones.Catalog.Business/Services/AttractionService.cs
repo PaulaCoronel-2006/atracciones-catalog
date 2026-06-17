@@ -297,6 +297,161 @@ public class AttractionService : IAttractionService
         return await _attractionData.UpdateAsync(updated);
     }
 
+    public async Task<bool> UpdateCompleteAsync(Guid id, CreateCompleteAttractionRequest request, Guid userId, bool isAdmin)
+    {
+        var existing = await _attractionData.GetFullByIdAsync(id);
+        if (existing == null)
+            throw new NotFoundException("Atracción", id);
+
+        if (!isAdmin && existing.ManagedById != userId)
+            throw new UnauthorizedBusinessException("No tienes permiso para editar esta atracción.");
+
+        // 1. Actualizar campos básicos
+        existing.Name = request.Name;
+        existing.LocationId = request.LocationId;
+        existing.SubcategoryId = request.SubcategoryId;
+        existing.DescriptionShort = request.DescriptionShort;
+        existing.DescriptionFull = request.DescriptionFull;
+        existing.Address = request.Address;
+        existing.Latitude = request.Latitude;
+        existing.Longitude = request.Longitude;
+        existing.MeetingPoint = request.MeetingPoint;
+        existing.DifficultyLevel = request.DifficultyLevel;
+        existing.UpdatedAt = DateTime.UtcNow;
+        existing.Slug = GenerateSlug(request.Name);
+
+        // 2. Actualizar traducciones
+        existing.Translations.Clear();
+        foreach (var t in request.Translations)
+        {
+            existing.Translations.Add(new AttractionTranslation
+            {
+                LanguageId = t.LanguageId,
+                Name = t.Name,
+                DescriptionShort = t.DescriptionShort,
+                DescriptionFull = t.DescriptionFull,
+                MeetingPoint = t.MeetingPoint
+            });
+        }
+
+        // 3. Actualizar idiomas de guía
+        existing.Languages.Clear();
+        foreach (var gl in request.GuideLanguages)
+        {
+            existing.Languages.Add(new AttractionLanguage
+            {
+                LanguageId = gl.LanguageId,
+                GuideType = gl.GuideType
+            });
+        }
+
+        // 4. Actualizar galería de imágenes/videos
+        existing.Media.Clear();
+        foreach (var m in request.Media)
+        {
+            existing.Media.Add(new AttractionMedia
+            {
+                MediaTypeId = m.MediaTypeId,
+                Url = m.Url,
+                Title = m.Title,
+                IsMain = m.IsMain,
+                SortOrder = m.SortOrder
+            });
+        }
+
+        // 5. Actualizar etiquetas (Tags)
+        existing.Tags.Clear();
+        foreach (var tagId in request.Tags)
+        {
+            existing.Tags.Add(new AttractionTag { TagId = tagId });
+        }
+
+        // 6. Actualizar inclusiones/exclusiones
+        existing.Inclusions.Clear();
+        foreach (var inc in request.Inclusions)
+        {
+            existing.Inclusions.Add(new AttractionInclusion
+            {
+                InclusionItemId = inc.InclusionItemId,
+                Type = inc.Type
+            });
+        }
+
+        // 7. Actualizar modalidades de producto (ProductOptions)
+        existing.ProductOptions.Clear();
+        if (!request.Products.Any())
+            throw new ValidationException("Debe agregar al menos una modalidad (producto) a la atracción.");
+
+        foreach (var p in request.Products)
+        {
+            if (!p.PriceTiers.Any())
+                throw new ValidationException($"La modalidad '{p.Title}' debe tener al menos una categoría de ticket (Price Tier) asignada.");
+
+            var product = new ProductOption
+            {
+                Id = Guid.NewGuid(),
+                AttractionId = existing.Id,
+                Title = p.Title,
+                Description = p.Description,
+                DurationMinutes = p.DurationMinutes,
+                DurationDescription = p.DurationDescription,
+                CancelPolicyHours = p.CancelPolicyHours,
+                CancelPolicyText = p.CancelPolicyText,
+                MaxGroupSize = p.MaxGroupSize,
+                MinParticipants = p.MinParticipants,
+                IsPrivate = p.IsPrivate,
+                Slug = GenerateSlug(p.Title),
+                IsActive = true
+            };
+
+            foreach (var pt in p.PriceTiers)
+            {
+                product.PriceTiers.Add(new PriceTier
+                {
+                    TicketCategoryId = pt.TicketCategoryId,
+                    Price = pt.Price,
+                    CurrencyCode = pt.CurrencyCode,
+                    IsActive = true
+                });
+            }
+
+            existing.ProductOptions.Add(product);
+        }
+
+        // 8. Actualizar itinerario
+        existing.Itineraries.Clear();
+        if (request.Itinerary != null)
+        {
+            var itinerary = new TourItinerary
+            {
+                Id = Guid.NewGuid(),
+                AttractionId = existing.Id,
+                LanguageId = request.Itinerary.LanguageId > 0 ? request.Itinerary.LanguageId : (short)1,
+                Overview = request.Itinerary.Overview,
+                Title = existing.Name
+            };
+
+            foreach (var s in request.Itinerary.Stops)
+            {
+                itinerary.Stops.Add(new TourStop
+                {
+                    Name = s.Name,
+                    Description = s.Description,
+                    Latitude = s.Latitude,
+                    Longitude = s.Longitude,
+                    StopNumber = s.StopNumber,
+                    AdmissionType = s.AdmissionType,
+                    DurationMinutes = s.StayTimeMinutes
+                });
+            }
+
+            existing.Itineraries.Add(itinerary);
+        }
+
+        await _uow.CompleteAsync();
+        return true;
+    }
+
     public async Task<bool> DeleteAsync(Guid id, Guid userId, bool isAdmin)
     {
         var existing = await _attractionData.GetByIdAsync(id);

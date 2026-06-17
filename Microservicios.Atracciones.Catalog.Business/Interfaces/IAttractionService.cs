@@ -14,6 +14,7 @@ public interface IAttractionService
     Task<Guid> CreateAsync(CreateAttractionRequest request, Guid userId, bool isAdmin);
     Task<Guid> CreateCompleteAsync(CreateCompleteAttractionRequest request, Guid userId, bool isAdmin);
     Task<bool> UpdateAsync(Guid id, UpdateAttractionRequest request, Guid userId, bool isAdmin);
+    Task<bool> UpdateCompleteAsync(Guid id, CreateCompleteAttractionRequest request, Guid userId, bool isAdmin);
     Task<bool> DeleteAsync(Guid id, Guid userId, bool isAdmin);
     Task<bool> ToggleStatusAsync(Guid id, bool isPublished, Guid userId, bool isAdmin);
     Task<bool> ToggleActiveAsync(Guid id, bool isActive, Guid userId, bool isAdmin);
