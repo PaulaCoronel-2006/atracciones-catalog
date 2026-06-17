@@ -9,7 +9,6 @@ namespace Microservicios.Atracciones.Catalog.API.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/attraction")]
-[AllowAnonymous]
 public class AttractionController : ControllerBase
 {
     private readonly IAttractionService _attractionService;
@@ -31,7 +30,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult<PagedResult<AttractionSummaryResponse>>> SearchManagement([FromQuery] AttractionSearchRequest request)
     {
-        var currentUserId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var currentUserId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
 
         var result = await _attractionService.SearchManagementAsync(request, currentUserId, isAdmin);
@@ -42,7 +43,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateAttractionRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
         var id = await _attractionService.CreateAsync(request, userId, isAdmin);
         return CreatedAtAction(nameof(Search), new { id }, id);
@@ -52,7 +55,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult<Guid>> CreateComplete([FromBody] CreateCompleteAttractionRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
         var id = await _attractionService.CreateCompleteAsync(request, userId, isAdmin);
         return Ok(new { id, message = "AtracciÃ³n completa creada con Ã©xito." });
@@ -87,7 +92,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult> Update(Guid id, [FromBody] UpdateAttractionRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
         var success = await _attractionService.UpdateAsync(id, request, userId, isAdmin);
         if (!success) return NotFound();
@@ -98,7 +105,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult> UpdateComplete(Guid id, [FromBody] CreateCompleteAttractionRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
         var success = await _attractionService.UpdateCompleteAsync(id, request, userId, isAdmin);
         if (!success) return NotFound();
@@ -109,7 +118,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         var success = await _attractionService.DeleteAsync(id, userId, isAdmin: true);
         if (!success) return NotFound();
         return Ok(new { message = "AtracciÃ³n eliminada con Ã©xito." });
@@ -119,7 +130,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult> ToggleStatus(Guid id, [FromBody] ToggleAttractionStatusRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
         var success = await _attractionService.ToggleStatusAsync(id, request.IsPublished, userId, isAdmin);
         if (!success) return NotFound();
@@ -131,7 +144,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult> ToggleActive(Guid id, [FromBody] Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.ToggleAttractionActiveRequest request)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
         
         try
@@ -152,7 +167,9 @@ public class AttractionController : ControllerBase
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult<Microservicios.Atracciones.Catalog.Business.DTOs.Attraction.AttractionFullEditionResponse>> GetCompleteDetail(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(nameIdentifier)) return Unauthorized(new { message = "Usuario no identificado en el token." });
+        var userId = Guid.Parse(nameIdentifier);
         bool isAdmin = User.IsInRole("Admin");
 
         var result = await _attractionService.GetCompleteByIdAsync(id, userId, isAdmin);
