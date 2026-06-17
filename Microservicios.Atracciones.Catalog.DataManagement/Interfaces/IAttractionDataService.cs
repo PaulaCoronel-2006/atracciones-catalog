@@ -10,6 +10,7 @@ public interface IAttractionDataService
     Task<AttractionNode?> GetAttractionBySlugAsync(string slug, short? languageId = null);
     Task<Attraction?> GetByIdAsync(Guid id);
     Task<Attraction?> GetFullByIdAsync(Guid id);
+    Task<AttractionNode?> GetAttractionByIdNodeAsync(Guid id, short? languageId = null);
     Task<IEnumerable<AttractionNode>> GetTopRatedAsync(int count);
     Task<Guid> AddAttractionAsync(Attraction attraction);
     Task<bool> UpdateAsync(Attraction attraction);

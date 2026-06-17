@@ -71,6 +71,57 @@ public class AttractionDataService : IAttractionDataService
         return node;
     }
 
+    public async Task<AttractionNode?> GetAttractionByIdNodeAsync(Guid id, short? languageId = null)
+    {
+        var attraction = await _unitOfWork.Attractions.Query()
+            .Include(a => a.Location)
+            .Include(a => a.Subcategory)
+            .ThenInclude(s => s.Category)
+            .Include(a => a.Media)
+            .Include(a => a.Tags).ThenInclude(t => t.Tag)
+            .Include(a => a.Inclusions).ThenInclude(i => i.InclusionItem)
+            .Include(a => a.Languages)
+            .FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
+
+        if (attraction == null) return null;
+
+        if (languageId.HasValue)
+        {
+            var translation = attraction.Translations.FirstOrDefault(t => t.LanguageId == languageId.Value);
+            if (translation != null)
+            {
+                attraction.Name = translation.Name;
+                attraction.DescriptionShort = translation.DescriptionShort ?? attraction.DescriptionShort;
+                attraction.DescriptionFull = translation.DescriptionFull ?? attraction.DescriptionFull;
+            }
+        }
+
+        var node = _mapper.Map<AttractionNode>(attraction);
+
+        node.Tags = attraction.Tags.Select(at => new TagNode
+        {
+            Id = at.Tag?.Id ?? at.TagId,
+            Name = at.Tag?.Name ?? ""
+        }).ToList();
+
+        node.Inclusions = attraction.Inclusions.Select(ai => new InclusionNode
+        {
+            Id = ai.InclusionItem?.Id ?? Guid.Empty,
+            Name = ai.InclusionItem?.DefaultText ?? "",
+            Description = ai.InclusionItem?.IconSlug,
+            Type = ai.Type
+        }).ToList();
+
+        node.GuideLanguages = attraction.Languages.Select(l => new GuideLanguageNode
+        {
+            LanguageId = l.LanguageId,
+            GuideType = l.GuideType,
+            Name = l.LanguageId switch { 1 => "Español", 2 => "Inglés", 3 => "Francés", 4 => "Portugués", _ => $"Idioma {l.LanguageId}" }
+        }).ToList();
+
+        return node;
+    }
+
     public async Task<IEnumerable<AttractionNode>> GetTopRatedAsync(int count)
     {
         var attractions = await _unitOfWork.Attractions.Query()
@@ -244,6 +295,7 @@ public class AttractionDataService : IAttractionDataService
             .Include(a => a.Itineraries).ThenInclude(i => i.Stops)
             .Include(a => a.ProductOptions)
                 .ThenInclude(p => p.PriceTiers)
+                    .ThenInclude(pt => pt.TicketCategory)
             .FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
     }
 

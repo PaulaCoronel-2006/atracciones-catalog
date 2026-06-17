@@ -19,6 +19,7 @@ public interface IAttractionService
     Task<bool> ToggleStatusAsync(Guid id, bool isPublished, Guid userId, bool isAdmin);
     Task<bool> ToggleActiveAsync(Guid id, bool isActive, Guid userId, bool isAdmin);
     Task<AttractionFullEditionResponse?> GetCompleteByIdAsync(Guid id, Guid userId, bool isAdmin);
+    Task<AttractionDetailResponse?> GetDetailByIdAsync(Guid id, short? languageId = null);
 
     // Itinerarios
     Task<IEnumerable<ItineraryResponse>> GetItinerariesAsync(Guid attractionId);

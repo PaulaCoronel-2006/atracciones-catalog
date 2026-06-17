@@ -95,6 +95,17 @@ public class AttractionService : IAttractionService
         return MapToDetail(node, products, itinerary);
     }
 
+    public async Task<AttractionDetailResponse?> GetDetailByIdAsync(Guid id, short? languageId = null)
+    {
+        var node = await _attractionData.GetAttractionByIdNodeAsync(id, languageId);
+        if (node == null) return null;
+
+        var products = await _inventoryData.GetProductsAsync(node.Id, languageId);
+        var itinerary = (await GetItinerariesAsync(node.Id)).FirstOrDefault();
+
+        return MapToDetail(node, products, itinerary);
+    }
+
     public async Task<IEnumerable<AttractionSummaryResponse>> GetTopRatedAsync(int count = 6)
     {
         var nodes = await _attractionData.GetTopRatedAsync(count);
@@ -378,44 +389,90 @@ public class AttractionService : IAttractionService
         }
 
         // 7. Actualizar modalidades de producto (ProductOptions)
-        existing.ProductOptions.Clear();
         if (!request.Products.Any())
             throw new ValidationException("Debe agregar al menos una modalidad (producto) a la atracción.");
 
-        foreach (var p in request.Products)
+        var requestProducts = request.Products.ToList();
+
+        var optionsToRemove = existing.ProductOptions.Where(po => 
+            !requestProducts.Any(p => 
+                (p.Id.HasValue && po.Id == p.Id.Value) || 
+                (!p.Id.HasValue && po.Title.Equals(p.Title, StringComparison.OrdinalIgnoreCase))
+            )
+        ).ToList();
+
+        foreach (var optToRemove in optionsToRemove)
+        {
+            existing.ProductOptions.Remove(optToRemove);
+        }
+
+        foreach (var p in requestProducts)
         {
             if (!p.PriceTiers.Any())
                 throw new ValidationException($"La modalidad '{p.Title}' debe tener al menos una categoría de ticket (Price Tier) asignada.");
 
-            var product = new ProductOption
-            {
-                Id = Guid.NewGuid(),
-                AttractionId = existing.Id,
-                Title = p.Title,
-                Description = p.Description,
-                DurationMinutes = p.DurationMinutes,
-                DurationDescription = p.DurationDescription,
-                CancelPolicyHours = p.CancelPolicyHours,
-                CancelPolicyText = p.CancelPolicyText,
-                MaxGroupSize = p.MaxGroupSize,
-                MinParticipants = p.MinParticipants,
-                IsPrivate = p.IsPrivate,
-                Slug = GenerateSlug(p.Title),
-                IsActive = true
-            };
+            var existingProduct = existing.ProductOptions.FirstOrDefault(po => 
+                (p.Id.HasValue && po.Id == p.Id.Value) || 
+                (!p.Id.HasValue && po.Title.Equals(p.Title, StringComparison.OrdinalIgnoreCase)));
 
-            foreach (var pt in p.PriceTiers)
+            if (existingProduct != null)
             {
-                product.PriceTiers.Add(new PriceTier
+                existingProduct.Title = p.Title;
+                existingProduct.Description = p.Description;
+                existingProduct.DurationMinutes = p.DurationMinutes;
+                existingProduct.DurationDescription = p.DurationDescription;
+                existingProduct.CancelPolicyHours = p.CancelPolicyHours;
+                existingProduct.CancelPolicyText = p.CancelPolicyText;
+                existingProduct.MaxGroupSize = p.MaxGroupSize;
+                existingProduct.MinParticipants = p.MinParticipants;
+                existingProduct.IsPrivate = p.IsPrivate;
+                existingProduct.Slug = GenerateSlug(p.Title);
+                existingProduct.IsActive = true;
+
+                existingProduct.PriceTiers.Clear();
+                foreach (var pt in p.PriceTiers)
                 {
-                    TicketCategoryId = pt.TicketCategoryId,
-                    Price = pt.Price,
-                    CurrencyCode = pt.CurrencyCode,
-                    IsActive = true
-                });
+                    existingProduct.PriceTiers.Add(new PriceTier
+                    {
+                        TicketCategoryId = pt.TicketCategoryId,
+                        Price = pt.Price,
+                        CurrencyCode = pt.CurrencyCode,
+                        IsActive = true
+                    });
+                }
             }
+            else
+            {
+                var newProduct = new ProductOption
+                {
+                    Id = p.Id ?? Guid.NewGuid(),
+                    AttractionId = existing.Id,
+                    Title = p.Title,
+                    Description = p.Description,
+                    DurationMinutes = p.DurationMinutes,
+                    DurationDescription = p.DurationDescription,
+                    CancelPolicyHours = p.CancelPolicyHours,
+                    CancelPolicyText = p.CancelPolicyText,
+                    MaxGroupSize = p.MaxGroupSize,
+                    MinParticipants = p.MinParticipants,
+                    IsPrivate = p.IsPrivate,
+                    Slug = GenerateSlug(p.Title),
+                    IsActive = true
+                };
 
-            existing.ProductOptions.Add(product);
+                foreach (var pt in p.PriceTiers)
+                {
+                    newProduct.PriceTiers.Add(new PriceTier
+                    {
+                        TicketCategoryId = pt.TicketCategoryId,
+                        Price = pt.Price,
+                        CurrencyCode = pt.CurrencyCode,
+                        IsActive = true
+                    });
+                }
+
+                existing.ProductOptions.Add(newProduct);
+            }
         }
 
         // 8. Actualizar itinerario
@@ -578,6 +635,7 @@ public class AttractionService : IAttractionService
                 {
                     Id = pt.Id,
                     TicketCategoryId = pt.TicketCategoryId,
+                    CategoryName = pt.TicketCategory?.Name ?? "Adulto",
                     Price = pt.Price,
                     CurrencyCode = pt.CurrencyCode
                 }).ToList()

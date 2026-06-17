@@ -231,6 +231,7 @@ public class AttractionMediaRequest
 
 public class ProductOptionRequest
 {
+    public Guid? Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int? DurationMinutes { get; set; }

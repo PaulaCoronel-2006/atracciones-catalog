@@ -74,6 +74,15 @@ public class AttractionController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:guid}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AttractionDetailResponse>> GetById(Guid id, [FromQuery] short requestedLangId = 1)
+    {
+        var result = await _attractionService.GetDetailByIdAsync(id, requestedLangId);
+        if (result == null) return NotFound(new { message = "Atracción no encontrada." });
+        return Ok(result);
+    }
+
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin,Partner")]
     public async Task<ActionResult> Update(Guid id, [FromBody] UpdateAttractionRequest request)
