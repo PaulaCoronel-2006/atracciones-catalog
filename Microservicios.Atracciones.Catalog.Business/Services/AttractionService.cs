@@ -160,16 +160,19 @@ public class AttractionService : IAttractionService
             Slug = GenerateSlug(request.Name)
         };
 
-        foreach (var t in request.Translations)
+        if (request.Translations != null)
         {
-            attraction.Translations.Add(new AttractionTranslation
+            foreach (var t in request.Translations)
             {
-                LanguageId = t.LanguageId,
-                Name = t.Name,
-                DescriptionShort = t.DescriptionShort,
-                DescriptionFull = t.DescriptionFull,
-                MeetingPoint = t.MeetingPoint
-            });
+                attraction.Translations.Add(new AttractionTranslation
+                {
+                    LanguageId = t.LanguageId,
+                    Name = t.Name,
+                    DescriptionShort = t.DescriptionShort,
+                    DescriptionFull = t.DescriptionFull,
+                    MeetingPoint = t.MeetingPoint
+                });
+            }
         }
 
         foreach (var gl in request.GuideLanguages)
@@ -193,19 +196,25 @@ public class AttractionService : IAttractionService
             });
         }
 
-        foreach (var tagId in request.Tags.Distinct())
+        if (request.Tags != null)
         {
-            if (tagId.ToString() == "33333333-3333-3333-3333-333333333333") continue;
-            attraction.Tags.Add(new AttractionTag { TagId = tagId });
+            foreach (var tagId in request.Tags.Distinct())
+            {
+                if (tagId.ToString() == "33333333-3333-3333-3333-333333333333") continue;
+                attraction.Tags.Add(new AttractionTag { TagId = tagId });
+            }
         }
 
-        foreach (var inc in request.Inclusions)
+        if (request.Inclusions != null)
         {
-            attraction.Inclusions.Add(new AttractionInclusion 
-            { 
-                InclusionItemId = inc.InclusionItemId,
-                Type = inc.Type
-            });
+            foreach (var inc in request.Inclusions)
+            {
+                attraction.Inclusions.Add(new AttractionInclusion 
+                { 
+                    InclusionItemId = inc.InclusionItemId,
+                    Type = inc.Type
+                });
+            }
         }
 
         if (!request.Products.Any())
@@ -258,18 +267,21 @@ public class AttractionService : IAttractionService
                 Title = attraction.Name
             };
 
-            foreach (var s in request.Itinerary.Stops)
+            if (request.Itinerary.Stops != null)
             {
-                itinerary.Stops.Add(new TourStop
+                foreach (var s in request.Itinerary.Stops)
                 {
-                    Name = s.Name,
-                    Description = s.Description,
-                    Latitude = s.Latitude,
-                    Longitude = s.Longitude,
-                    StopNumber = s.StopNumber,
-                    AdmissionType = s.AdmissionType,
-                    DurationMinutes = s.StayTimeMinutes
-                });
+                    itinerary.Stops.Add(new TourStop
+                    {
+                        Name = s.Name,
+                        Description = s.Description,
+                        Latitude = s.Latitude,
+                        Longitude = s.Longitude,
+                        StopNumber = s.StopNumber,
+                        AdmissionType = s.AdmissionType,
+                        DurationMinutes = s.StayTimeMinutes
+                    });
+                }
             }
 
             attraction.Itineraries.Add(itinerary);
@@ -373,21 +385,27 @@ public class AttractionService : IAttractionService
 
         // 5. Actualizar etiquetas (Tags)
         existing.Tags.Clear();
-        foreach (var tagId in request.Tags.Distinct())
+        if (request.Tags != null)
         {
-            if (tagId.ToString() == "33333333-3333-3333-3333-333333333333") continue;
-            existing.Tags.Add(new AttractionTag { TagId = tagId });
+            foreach (var tagId in request.Tags.Distinct())
+            {
+                if (tagId.ToString() == "33333333-3333-3333-3333-333333333333") continue;
+                existing.Tags.Add(new AttractionTag { TagId = tagId });
+            }
         }
 
         // 6. Actualizar inclusiones/exclusiones
         existing.Inclusions.Clear();
-        foreach (var inc in request.Inclusions)
+        if (request.Inclusions != null)
         {
-            existing.Inclusions.Add(new AttractionInclusion
+            foreach (var inc in request.Inclusions)
             {
-                InclusionItemId = inc.InclusionItemId,
-                Type = inc.Type
-            });
+                existing.Inclusions.Add(new AttractionInclusion
+                {
+                    InclusionItemId = inc.InclusionItemId,
+                    Type = inc.Type
+                });
+            }
         }
 
         // 7. Actualizar modalidades de producto (ProductOptions)
@@ -490,18 +508,21 @@ public class AttractionService : IAttractionService
                 Title = existing.Name
             };
 
-            foreach (var s in request.Itinerary.Stops)
+            if (request.Itinerary.Stops != null)
             {
-                itinerary.Stops.Add(new TourStop
+                foreach (var s in request.Itinerary.Stops)
                 {
-                    Name = s.Name,
-                    Description = s.Description,
-                    Latitude = s.Latitude,
-                    Longitude = s.Longitude,
-                    StopNumber = s.StopNumber,
-                    AdmissionType = s.AdmissionType,
-                    DurationMinutes = s.StayTimeMinutes
-                });
+                    itinerary.Stops.Add(new TourStop
+                    {
+                        Name = s.Name,
+                        Description = s.Description,
+                        Latitude = s.Latitude,
+                        Longitude = s.Longitude,
+                        StopNumber = s.StopNumber,
+                        AdmissionType = s.AdmissionType,
+                        DurationMinutes = s.StayTimeMinutes
+                    });
+                }
             }
 
             existing.Itineraries.Add(itinerary);
