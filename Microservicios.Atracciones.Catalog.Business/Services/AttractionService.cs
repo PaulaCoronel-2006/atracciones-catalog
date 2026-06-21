@@ -193,7 +193,7 @@ public class AttractionService : IAttractionService
             });
         }
 
-        foreach (var tagId in request.Tags)
+        foreach (var tagId in request.Tags.Distinct())
         {
             attraction.Tags.Add(new AttractionTag { TagId = tagId });
         }
@@ -372,7 +372,7 @@ public class AttractionService : IAttractionService
 
         // 5. Actualizar etiquetas (Tags)
         existing.Tags.Clear();
-        foreach (var tagId in request.Tags)
+        foreach (var tagId in request.Tags.Distinct())
         {
             existing.Tags.Add(new AttractionTag { TagId = tagId });
         }
