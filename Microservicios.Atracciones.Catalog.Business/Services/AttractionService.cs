@@ -156,7 +156,7 @@ public class AttractionService : IAttractionService
             MeetingPoint = request.MeetingPoint,
             DifficultyLevel = request.DifficultyLevel,
             ManagedById = isAdmin ? null : userId,
-            IsPublished = false,
+            IsPublished = true,
             Slug = GenerateSlug(request.Name)
         };
 
