@@ -195,6 +195,7 @@ public class AttractionService : IAttractionService
 
         foreach (var tagId in request.Tags.Distinct())
         {
+            if (tagId.ToString() == "33333333-3333-3333-3333-333333333333") continue;
             attraction.Tags.Add(new AttractionTag { TagId = tagId });
         }
 
@@ -374,6 +375,7 @@ public class AttractionService : IAttractionService
         existing.Tags.Clear();
         foreach (var tagId in request.Tags.Distinct())
         {
+            if (tagId.ToString() == "33333333-3333-3333-3333-333333333333") continue;
             existing.Tags.Add(new AttractionTag { TagId = tagId });
         }
 
