@@ -98,6 +98,15 @@ public class AttractionService : IAttractionService
     public async Task<AttractionDetailResponse?> GetDetailByIdAsync(Guid id, short? languageId = null)
     {
         var node = await _attractionData.GetAttractionByIdNodeAsync(id, languageId);
+        if (node == null)
+        {
+            var productOption = await _uow.ProductOptions.Query().FirstOrDefaultAsync(po => po.Id == id);
+            if (productOption != null)
+            {
+                node = await _attractionData.GetAttractionByIdNodeAsync(productOption.AttractionId, languageId);
+            }
+        }
+        
         if (node == null) return null;
 
         var products = await _inventoryData.GetProductsAsync(node.Id, languageId);
