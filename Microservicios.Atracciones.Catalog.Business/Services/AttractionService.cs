@@ -138,33 +138,34 @@ public class AttractionService : IAttractionService
         return detail;
     }
 
-    private async Task<List<object>> FetchSlotsFromBookingAsync(Guid attractionId)
+    private async Task<List<AttractionSlotResponse>> FetchSlotsFromBookingAsync(Guid attractionId)
     {
         try
         {
-            var client = _httpClientFactory.CreateClient();
-            
-            // Evaluamos dinámicamente si estamos corriendo en la nube de Render o de forma Local
-            string baseUrl = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
-                ? "http://booking-api:8080" 
-                : "https://atracciones-booking-api.onrender.com";
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var endLimit = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
 
-            // Se consume el endpoint de slots enviando el ID requerido
-            var response = await client.GetAsync($"{baseUrl}/api/v1/slots?attractionId={attractionId}");
-            
-            if (response.IsSuccessStatusCode)
+            // Consultar directamente los slots de la base de datos Supabase compartida
+            var slots = await _uow.AvailabilitySlots.Query()
+                .Where(s => s.ProductId == attractionId && s.IsActive && s.SlotDate >= today && s.SlotDate <= endLimit && s.CapacityAvailable > 0)
+                .OrderBy(s => s.SlotDate)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync();
+
+            return slots.Select(s => new AttractionSlotResponse
             {
-                var result = await response.Content.ReadFromJsonAsync<BookingSlotsApiResponse>();
-                return result?.Data ?? new List<object>();
-            }
+                SlotId = s.Id,
+                Fecha = s.SlotDate.ToString("yyyy-MM-dd"),
+                HoraInicio = s.StartTime.ToString(@"HH\:mm"),
+                CuposDisponibles = s.CapacityAvailable
+            }).ToList();
         }
         catch (Exception ex)
         {
-            // Fail-safe: Si el microservicio de Booking está caído, la app no se rompe y envía una lista vacía
-            Console.WriteLine($"Error comunicándose con el Microservicio de Booking: {ex.Message}");
+            Console.WriteLine($"Error al consultar slots directamente de la BD en Catalog: {ex.Message}");
         }
 
-        return new List<object>();
+        return new List<AttractionSlotResponse>();
     }
 
     public async Task<IEnumerable<AttractionSummaryResponse>> GetTopRatedAsync(int count = 6)

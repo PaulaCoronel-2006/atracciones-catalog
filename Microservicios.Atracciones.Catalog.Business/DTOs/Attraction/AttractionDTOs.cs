@@ -71,7 +71,15 @@ public class AttractionDetailResponse
     public List<InclusionResponse> Inclusions { get; set; } = [];
     public List<GuideLanguageResponse> GuideLanguages { get; set; } = [];
     public ItineraryResponse? Itinerary { get; set; }
-    public List<object> Slots { get; set; } = new List<object>();
+    public List<AttractionSlotResponse> Slots { get; set; } = [];
+}
+
+public class AttractionSlotResponse
+{
+    public Guid SlotId { get; set; }
+    public string Fecha { get; set; } = string.Empty;
+    public string HoraInicio { get; set; } = string.Empty;
+    public int CuposDisponibles { get; set; }
 }
 
 public partial class TagResponse
