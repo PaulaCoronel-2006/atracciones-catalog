@@ -166,8 +166,10 @@ public class AttractionService : IAttractionService
             return slots.Select(s => new AttractionSlotResponse
             {
                 SlotId = s.Id,
+                ProductId = s.ProductId,
                 Fecha = s.SlotDate.ToString("yyyy-MM-dd"),
                 HoraInicio = s.StartTime.ToString(@"HH\:mm"),
+                CuposTotales = s.CapacityTotal,
                 CuposDisponibles = s.CapacityAvailable
             }).ToList();
         }

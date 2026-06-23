@@ -77,8 +77,10 @@ public class AttractionDetailResponse
 public class AttractionSlotResponse
 {
     public Guid SlotId { get; set; }
+    public Guid ProductId { get; set; }
     public string Fecha { get; set; } = string.Empty;
     public string HoraInicio { get; set; } = string.Empty;
+    public int CuposTotales { get; set; }
     public int CuposDisponibles { get; set; }
 }
 
