@@ -573,7 +573,7 @@ public class AttractionService : IAttractionService
                         Longitude = s.Longitude,
                         StopNumber = s.StopNumber,
                         AdmissionType = s.AdmissionType,
-                        DurationMinutes = s.DurationMinutes
+                        DurationMinutes = s.StayTimeMinutes
                     });
                 }
             }

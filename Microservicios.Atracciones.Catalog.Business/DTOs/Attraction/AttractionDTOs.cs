@@ -71,6 +71,7 @@ public class AttractionDetailResponse
     public List<InclusionResponse> Inclusions { get; set; } = [];
     public List<GuideLanguageResponse> GuideLanguages { get; set; } = [];
     public ItineraryResponse? Itinerary { get; set; }
+    public List<object> Slots { get; set; } = new List<object>();
 }
 
 public partial class TagResponse
