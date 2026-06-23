@@ -20,7 +20,7 @@ public static class DependencyInjection
 
         // â”€â”€â”€ Validadores FluentValidation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Se pueden aÃ±adir validadores especÃ­ficos del catÃ¡logo aquÃ­ si existen
-
+        services.AddHttpClient();
         return services;
     }
 }

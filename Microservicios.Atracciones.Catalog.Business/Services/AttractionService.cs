@@ -8,6 +8,7 @@ using Microservicios.Atracciones.Catalog.DataAccess.Entities;
 using Microservicios.Atracciones.Catalog.DataManagement.Interfaces;
 using Microservicios.Atracciones.Catalog.DataManagement.Models;
 using Microservicios.Atracciones.Catalog.DataAccess.Repositories.Interfaces;
+using System.Net.Http.Json;
 
 namespace Microservicios.Atracciones.Catalog.Business.Services;
 
@@ -16,12 +17,18 @@ public class AttractionService : IAttractionService
     private readonly IAttractionDataService _attractionData;
     private readonly IInventoryDataService _inventoryData;
     private readonly IUnitOfWork _uow;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public AttractionService(IAttractionDataService attractionData, IInventoryDataService inventoryData, IUnitOfWork uow)
+    public AttractionService(
+        IAttractionDataService attractionData, 
+        IInventoryDataService inventoryData, 
+        IUnitOfWork uow,
+        IHttpClientFactory httpClientFactory)
     {
         _attractionData = attractionData;
         _inventoryData = inventoryData;
         _uow = uow;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<PagedResult<AttractionSummaryResponse>> SearchAsync(AttractionSearchRequest request)
@@ -92,7 +99,15 @@ public class AttractionService : IAttractionService
         var products = await _inventoryData.GetProductsAsync(node.Id, languageId);
         var itinerary = (await GetItinerariesAsync(node.Id)).FirstOrDefault();
 
-        return MapToDetail(node, products, itinerary);
+        var detail = MapToDetail(node, products, itinerary);
+        
+        // Inyectamos los horarios de forma asíncrona
+        if (detail != null)
+        {
+            detail.Slots = await FetchSlotsFromBookingAsync(detail.Id);
+        }
+
+        return detail;
     }
 
     public async Task<AttractionDetailResponse?> GetDetailByIdAsync(Guid id, short? languageId = null)
@@ -112,7 +127,44 @@ public class AttractionService : IAttractionService
         var products = await _inventoryData.GetProductsAsync(node.Id, languageId);
         var itinerary = (await GetItinerariesAsync(node.Id)).FirstOrDefault();
 
-        return MapToDetail(node, products, itinerary);
+        var detail = MapToDetail(node, products, itinerary);
+        
+        // Inyectamos los horarios de forma asíncrona
+        if (detail != null)
+        {
+            detail.Slots = await FetchSlotsFromBookingAsync(detail.Id);
+        }
+
+        return detail;
+    }
+
+    private async Task<List<object>> FetchSlotsFromBookingAsync(Guid attractionId)
+    {
+        try
+        {
+            var client = _httpClientFactory.CreateClient();
+            
+            // Evaluamos dinámicamente si estamos corriendo en la nube de Render o de forma Local
+            string baseUrl = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
+                ? "http://booking-api:8080" 
+                : "https://atracciones-booking-api.onrender.com";
+
+            // Se consume el endpoint de slots enviando el ID requerido
+            var response = await client.GetAsync($"{baseUrl}/api/v1/slots?attractionId={attractionId}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<BookingSlotsApiResponse>();
+                return result?.Data ?? new List<object>();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fail-safe: Si el microservicio de Booking está caído, la app no se rompe y envía una lista vacía
+            Console.WriteLine($"Error comunicándose con el Microservicio de Booking: {ex.Message}");
+        }
+
+        return new List<object>();
     }
 
     public async Task<IEnumerable<AttractionSummaryResponse>> GetTopRatedAsync(int count = 6)
@@ -334,12 +386,11 @@ public class AttractionService : IAttractionService
     {
         var existing = await _attractionData.GetFullByIdAsync(id);
         if (existing == null)
-            throw new NotFoundException("Atracción", id);
+            throw new NotFoundException("Atración", id);
 
         if (!isAdmin && existing.ManagedById != userId)
             throw new UnauthorizedBusinessException("No tienes permiso para editar esta atracción.");
 
-        // 1. Actualizar campos básicos
         existing.Name = request.Name;
         existing.LocationId = request.LocationId;
         existing.SubcategoryId = request.SubcategoryId;
@@ -353,7 +404,6 @@ public class AttractionService : IAttractionService
         existing.UpdatedAt = DateTime.UtcNow;
         existing.Slug = GenerateSlug(request.Name);
 
-        // 2. Actualizar traducciones
         existing.Translations.Clear();
         foreach (var t in request.Translations)
         {
@@ -367,7 +417,6 @@ public class AttractionService : IAttractionService
             });
         }
 
-        // 3. Actualizar idiomas de guía
         existing.Languages.Clear();
         foreach (var gl in request.GuideLanguages)
         {
@@ -378,7 +427,6 @@ public class AttractionService : IAttractionService
             });
         }
 
-        // 4. Actualizar galería de imágenes/videos
         existing.Media.Clear();
         foreach (var m in request.Media)
         {
@@ -392,7 +440,6 @@ public class AttractionService : IAttractionService
             });
         }
 
-        // 5. Actualizar etiquetas (Tags)
         existing.Tags.Clear();
         if (request.Tags != null)
         {
@@ -403,7 +450,6 @@ public class AttractionService : IAttractionService
             }
         }
 
-        // 6. Actualizar inclusiones/exclusiones
         existing.Inclusions.Clear();
         if (request.Inclusions != null)
         {
@@ -417,7 +463,6 @@ public class AttractionService : IAttractionService
             }
         }
 
-        // 7. Actualizar modalidades de producto (ProductOptions)
         if (!request.Products.Any())
             throw new ValidationException("Debe agregar al menos una modalidad (producto) a la atracción.");
 
@@ -504,7 +549,6 @@ public class AttractionService : IAttractionService
             }
         }
 
-        // 8. Actualizar itinerario
         existing.Itineraries.Clear();
         if (request.Itinerary != null)
         {
@@ -529,7 +573,7 @@ public class AttractionService : IAttractionService
                         Longitude = s.Longitude,
                         StopNumber = s.StopNumber,
                         AdmissionType = s.AdmissionType,
-                        DurationMinutes = s.StayTimeMinutes
+                        DurationMinutes = s.DurationMinutes
                     });
                 }
             }
@@ -892,3 +936,10 @@ public class AttractionService : IAttractionService
     };
 }
 
+// Clase DTO auxiliar para mapear el contrato de respuesta del microservicio de Booking
+public class BookingSlotsApiResponse
+{
+    public bool Success { get; set; }
+    public List<object> Data { get; set; }
+    public string Message { get; set; }
+}
