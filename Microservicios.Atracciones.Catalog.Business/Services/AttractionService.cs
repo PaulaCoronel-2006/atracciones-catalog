@@ -145,9 +145,20 @@ public class AttractionService : IAttractionService
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var endLimit = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
 
-            // Consultar directamente los slots de la base de datos Supabase compartida
+            // Obtener los IDs de las opciones (modalidades) de esta atracción
+            var productOptionIds = await _uow.ProductOptions.Query()
+                .Where(po => po.AttractionId == attractionId && po.IsActive)
+                .Select(po => po.Id)
+                .ToListAsync();
+
+            if (!productOptionIds.Any())
+            {
+                return new List<AttractionSlotResponse>();
+            }
+
+            // Consultar directamente los slots de las opciones en la base de datos Supabase compartida
             var slots = await _uow.AvailabilitySlots.Query()
-                .Where(s => s.ProductId == attractionId && s.IsActive && s.SlotDate >= today && s.SlotDate <= endLimit && s.CapacityAvailable > 0)
+                .Where(s => productOptionIds.Contains(s.ProductId) && s.IsActive && s.SlotDate >= today && s.SlotDate <= endLimit && s.CapacityAvailable > 0)
                 .OrderBy(s => s.SlotDate)
                 .ThenBy(s => s.StartTime)
                 .ToListAsync();
