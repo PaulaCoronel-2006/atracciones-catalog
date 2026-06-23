@@ -28,6 +28,7 @@ public interface IUnitOfWork : IDisposable
     // Otros
     ITicketCategoryRepository TicketCategories { get; }
     ITourStopRepository TourStops { get; }
+    IGenericRepository<Entities.AvailabilitySlot> AvailabilitySlots { get; }
 
     Task<int> CompleteAsync();
 }

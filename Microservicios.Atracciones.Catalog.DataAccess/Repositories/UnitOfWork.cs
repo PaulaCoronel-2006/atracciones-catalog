@@ -49,8 +49,11 @@ public class UnitOfWork : IUnitOfWork
     // Otros
     private ITicketCategoryRepository? _ticketCategories;
     private ITourStopRepository? _tourStops;
+    private IGenericRepository<Entities.AvailabilitySlot>? _availabilitySlots;
+
     public ITicketCategoryRepository TicketCategories => _ticketCategories ??= new TicketCategoryRepository(_context);
     public ITourStopRepository TourStops => _tourStops ??= new TourStopRepository(_context);
+    public IGenericRepository<Entities.AvailabilitySlot> AvailabilitySlots => _availabilitySlots ??= new GenericRepository<Entities.AvailabilitySlot>(_context);
 
     public async Task<int> CompleteAsync()
     {

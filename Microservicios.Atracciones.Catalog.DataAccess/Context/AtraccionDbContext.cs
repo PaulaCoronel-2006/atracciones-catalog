@@ -69,6 +69,7 @@ public class AtraccionDbContext : DbContext
     public DbSet<ProductTranslation> ProductTranslations { get; set; }
     public DbSet<PriceTier> PriceTiers { get; set; }
     public DbSet<TicketCategory> TicketCategories { get; set; }
+    public DbSet<AvailabilitySlot> AvailabilitySlots { get; set; }
 
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // MODEL CREATING
@@ -100,6 +101,7 @@ public class AtraccionDbContext : DbContext
             { nameof(ProductTranslation), "product_translation" },
             { nameof(PriceTier), "price_tier" },
             { nameof(TicketCategory), "ticket_category" },
+            { nameof(AvailabilitySlot), "availability_slot" },
             { nameof(TourItinerary), "tour_itinerary" },
             { nameof(TourStop), "tour_stop" },
             { nameof(TourStopMedia), "tour_stop_media" },
